@@ -8,9 +8,12 @@ import torchvision.datasets as dset
 import torchvision.transforms as trn
 
 import ood_utils.svhn_loader as svhn
+import ood_utils.testfakedataset as testface
+
 from cifar10.dataloader import Cifar10DataLoaderFactory
 from cifar100.dataloader import Cifar100DataLoaderFactory
 from ffppc23.dataloader import Ffplusplusc23DatasetFactory
+
 from config import config
 from models.resnets import parse_model_from_name
 from ood_utils.display_results import (
@@ -55,7 +58,7 @@ elif args.dataset == "ffppc23":
     _, test_loader = Ffplusplusc23DatasetFactory.create_train_loaders(
         batch_size=args.batch_size
     )
-    classes = 998
+    classes = 1000
 
 model = parse_model_from_name(model_name=args.model, classes=classes).cuda()
 weights_path = os.path.join(
@@ -156,43 +159,49 @@ def get_and_print_results(ood_loader, num_to_avg=args.num_to_avg):
         print_measures(auroc, aupr, fpr, args.model)
 
 
-# Textures
-ood_data = dset.ImageFolder(
-    root=config["DATASETS"]["Textures"],
-    transform=trn.Compose(
-        [trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]
-    ),
-)
+##face2face
+ood_data = testface.Fakedataset(
+    root_dir=config["DATASETS"]["face2face"],
+    )
+
+
 ood_loader = torch.utils.data.DataLoader(
     ood_data, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True
 )
-print("\n\nTexture Detection")
+
+print("\n\nface2face Detection")
 get_and_print_results(ood_loader)
 
-# SVHN
-ood_data = svhn.SVHN(
-    root=config["DATASETS"]["SVHN"],
-    split="test",
-    transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)]),
-    download=False,
-)
+
+##deepfakes
+ood_data = testface.Fakedataset(
+    root_dir=config["DATASETS"]["deepfakes"],
+    )
 ood_loader = torch.utils.data.DataLoader(
-    ood_data, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True
+    ood_data, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True
 )
-print("\n\nSVHN Detection")
+print("\n\ndeepfakes Detection")
 get_and_print_results(ood_loader)
 
-# Places365
-ood_data = dset.ImageFolder(
-    root=config["DATASETS"]["Places365"],
-    transform=trn.Compose(
-        [trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]
-    ),
-)
+
+##faceswap
+ood_data = testface.Fakedataset(
+    root_dir=config["DATASETS"]["faceswap"],
+    )
 ood_loader = torch.utils.data.DataLoader(
-    ood_data, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True
+    ood_data, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True
 )
-print("\n\nPlaces365 Detection")
+print("\n\nfaceswap Detection")
+get_and_print_results(ood_loader)
+
+##neuraltextures
+ood_data = testface.Fakedataset(
+    root_dir=config["DATASETS"]["neuraltextures"],
+    )
+ood_loader = torch.utils.data.DataLoader(
+    ood_data, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True
+)
+print("\n\nneuraltextures Detection")
 get_and_print_results(ood_loader)
 
 # Mean Results
@@ -200,3 +209,49 @@ print("\n\nMean Test Results!!!!!")
 print_measures(
     np.mean(auroc_list), np.mean(aupr_list), np.mean(fpr_list), method_name=args.model
 )
+
+
+# # Textures
+# ood_data = dset.ImageFolder(
+#     root=config["DATASETS"]["Textures"],
+#     transform=trn.Compose(
+#         [trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]
+#     ),
+# )
+# ood_loader = torch.utils.data.DataLoader(
+#     ood_data, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True
+# )
+# print("\n\nTexture Detection")
+# get_and_print_results(ood_loader)
+
+# # SVHN
+# ood_data = svhn.SVHN(
+#     root=config["DATASETS"]["SVHN"],
+#     split="test",
+#     transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)]),
+#     download=False,
+# )
+# ood_loader = torch.utils.data.DataLoader(
+#     ood_data, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True
+# )
+# print("\n\nSVHN Detection")
+# get_and_print_results(ood_loader)
+
+# # Places365
+# ood_data = dset.ImageFolder(
+#     root=config["DATASETS"]["Places365"],
+#     transform=trn.Compose(
+#         [trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]
+#     ),
+# )
+# ood_loader = torch.utils.data.DataLoader(
+#     ood_data, batch_size=args.batch_size, shuffle=True, num_workers=2, pin_memory=True
+# )
+# print("\n\nPlaces365 Detection")
+# get_and_print_results(ood_loader)
+
+# # Mean Results
+# print("\n\nMean Test Results!!!!!")
+# print_measures(
+#     np.mean(auroc_list), np.mean(aupr_list), np.mean(fpr_list), method_name=args.model
+# )

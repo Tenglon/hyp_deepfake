@@ -96,7 +96,7 @@ def main():
         classes = 100
     elif args.dataset == "ffppc23":# Assuming that there are only two categories, true and false
         dataset_factory = Ffplusplusc23DatasetFactory
-        classes = 998
+        classes = 1000
 
     # Create dataloaders
     train_loader, test_loader = dataset_factory.create_train_loaders(
@@ -128,8 +128,9 @@ def main():
 
         for idx, (input, target) in enumerate(train_loader):
             input, target = input.cuda(), target.cuda()
-            output = model(input)
-            loss = loss_fn(output, target)
+            output = model(input) #torch.Size([128, 998])
+            # import pdb;pdb.set_trace()
+            loss = loss_fn(output, target)#torch.Size([128])
 
             optimizer.zero_grad()
             loss.backward()

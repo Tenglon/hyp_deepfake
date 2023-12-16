@@ -229,9 +229,10 @@ class HyperbolicResNet(nn.Module):
         ## only need several fc
         # x = self.fc(x.squeeze())
         x = self.fc0(x.squeeze())
+        x = nn.ReLU()(x)
         # x = self.bn0(x)
         x = self.fc1(x)
-        # x = self.bn0(x)
+        x = nn.ReLU()(x)
         x = self.fc2(x)
         
         return x

@@ -112,16 +112,24 @@ class EuclideanResNet(nn.Module):
 
         self.avg_pool = nn.AvgPool2d(8)
         self.fc = nn.Linear(channel_dims[2], classes)
+        self.fc0 = nn.Linear(channel_dims[2], 1024)
+        self.fc1 = nn.Linear(1024, 1024)
+        self.fc2 = nn.Linear(1024, classes)
+
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.conv(x)
-        x = self.bn(x)
-        x = self.relu(x)
-        x = self.group1(x)
-        x = self.group2(x)
-        x = self.group3(x)
-        x = self.avg_pool(x)
-        x = self.fc(x.squeeze())
+        # x = self.conv(x)
+        # x = self.bn(x)
+        # x = self.relu(x)
+        # x = self.group1(x)
+        # x = self.group2(x)
+        # x = self.group3(x)
+        # x = self.avg_pool(x)
+        # x = self.fc(x.squeeze())
+        x = self.fc0(x.squeeze())
+        x = nn.ReLU()(x)
+        # x = self.fc1(x)
+        x = self.fc2(x)
         return x
 
     def _make_group(
