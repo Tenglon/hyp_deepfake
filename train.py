@@ -6,7 +6,6 @@ from datetime import datetime
 
 import torch
 from timm import utils
-from torch.utils.tensorboard import SummaryWriter
 
 from cifar10.dataloader import Cifar10DataLoaderFactory
 from cifar100.dataloader import Cifar100DataLoaderFactory
@@ -17,65 +16,15 @@ from models.resnets import parse_model_from_name
 parser = argparse.ArgumentParser(description="PyTorch CIFAR-10 training")
 
 parser.add_argument("model", type=str, help="Model name")
-parser.add_argument(
-    "dataset",
-    type=str,
-    choices=["cifar10", "cifar100","ffppc23"],
-    help="Dataset (cifar10, cifar100,ffppc23)",
-)
-parser.add_argument(
-    "-b",
-    "--batch-size",
-    type=int,
-    default=128,
-    help="Overwrite batch size (default: 128)",
-)
-parser.add_argument(
-    "-e",
-    "--epochs",
-    type=int,
-    default=500,
-    help="Number of epochs (default: 500)",
-)
-parser.add_argument(
-    "--opt",
-    type=str,
-    default="sgd",
-    help="Optimizer (default: sgd)",
-)
-parser.add_argument(
-    "--lr",
-    type=float,
-    default=0.001,
-    help="Learning rate (default: 0.001)",
-)
-parser.add_argument(
-    "--momentum",
-    type=float,
-    default=0.9,
-    help="Momentum (default: 0.9)",
-)
-parser.add_argument(
-    "--weight-decay",
-    type=float,
-    default=1e-4,
-    help="Weight decay (default: 1e-4)",
-)
-parser.add_argument(
-    "-s",
-    "--save",
-    action="store_const",
-    const=True,
-    default=False,
-    help="Save the model weights after training",
-)
-parser.add_argument(
-    "--criterion",
-    type=str,
-    default="top1",
-    choices=["losses", "top1", "top5"],
-    help="Choose the metric which will determine the best result (default: top1)",
-)
+parser.add_argument("dataset", type=str, choices=["cifar10", "cifar100","ffppc23"], default="ffppc23")
+parser.add_argument("-b", "--batch-size", type=int, default=128)
+parser.add_argument("-e", "--epochs", type=int, default=500)
+parser.add_argument("--opt", type=str, default="sgd")
+parser.add_argument("--lr", type=float, default=0.001)
+parser.add_argument("--momentum", type=float, default=0.9)
+parser.add_argument("--weight-decay", type=float, default=1e-4)
+parser.add_argument("-s", "--save", action="store_const", const=True, default=False)
+parser.add_argument("--criterion", type=str, default="top1", choices=["losses", "top1", "top5"])
 
 
 def main():
@@ -105,9 +54,6 @@ def main():
 
     # Create model
     model = parse_model_from_name(args.model, classes).cuda()
-
-    # Initialize tensorboard logger
-    writer = SummaryWriter(exp_dir)
 
     # Create optimizers
     optimizer = initialize_optimizer(
@@ -155,8 +101,6 @@ def main():
                 metrics["losses"].update(loss.data.item(), input.size(0))
                 metrics["top1"].update(acc1.item(), output.size(0))
                 metrics["top5"].update(acc5.item(), output.size(0))
-
-        writer.add_scalar(f"{args.criterion}/test", metrics[args.criterion].avg, epoch)
 
         if (
             not best_avg_metrics
