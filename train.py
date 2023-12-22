@@ -7,24 +7,23 @@ from datetime import datetime
 import torch
 from timm import utils
 
-from cifar10.dataloader import Cifar10DataLoaderFactory
-from cifar100.dataloader import Cifar100DataLoaderFactory
 from ffppc23.dataloader import Ffplusplusc23DatasetFactory
 from models.optimizers import initialize_optimizer
 from models.resnets import parse_model_from_name
 
-parser = argparse.ArgumentParser(description="PyTorch CIFAR-10 training")
+parser = argparse.ArgumentParser()
 
-parser.add_argument("model", type=str, help="Model name")
-parser.add_argument("dataset", type=str, choices=["cifar10", "cifar100","ffppc23"], default="ffppc23")
-parser.add_argument("-b", "--batch-size", type=int, default=128)
-parser.add_argument("-e", "--epochs", type=int, default=500)
+parser.add_argument("--model", type=str, default="euclidean-8-16-768-resnet-32")
+parser.add_argument("--dataset", type=str, default="ffppc23")
+parser.add_argument("--batch-size", type=int, default=128)
+parser.add_argument("--epochs", type=int, default=50)
 parser.add_argument("--opt", type=str, default="sgd")
 parser.add_argument("--lr", type=float, default=0.001)
 parser.add_argument("--momentum", type=float, default=0.9)
 parser.add_argument("--weight-decay", type=float, default=1e-4)
-parser.add_argument("-s", "--save", action="store_const", const=True, default=False)
+parser.add_argument("--save", action="store_const", const=True, default=True)
 parser.add_argument("--criterion", type=str, default="top1", choices=["losses", "top1", "top5"])
+parser.add_argument("--num-workers", type=int, default=8)
 
 
 def main():
@@ -36,20 +35,13 @@ def main():
     exp_dir = os.path.join(dir_path, "runs", args.dataset, args.model, now)
     os.makedirs(exp_dir)
 
-    # Grab some dataset specific stuff
-    if args.dataset == "cifar10":
-        dataset_factory = Cifar10DataLoaderFactory
-        classes = 10
-    elif args.dataset == "cifar100":
-        dataset_factory = Cifar100DataLoaderFactory
-        classes = 100
-    elif args.dataset == "ffppc23":# Assuming that there are only two categories, true and false
-        dataset_factory = Ffplusplusc23DatasetFactory
-        classes = 1000
+    dataset_factory = Ffplusplusc23DatasetFactory
+    classes = 1000
 
     # Create dataloaders
     train_loader, test_loader = dataset_factory.create_train_loaders(
-        batch_size=args.batch_size
+        batch_size=args.batch_size,
+        num_workers=args.num_workers
     )
 
     # Create model

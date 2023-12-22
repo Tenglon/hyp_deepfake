@@ -2,10 +2,7 @@ import torchvision
 import torch
 import os
 from torch.utils.data import Dataset, DataLoader
-# from .facefrensicspp import Ffplusplusc23Dataset
 from .path_config import data_dir
-
-
 
 class Ffplusplusc23Dataset(Dataset):
     def __init__(self, root_dir,train=True):
@@ -41,40 +38,33 @@ class Ffplusplusc23Dataset(Dataset):
         feature = torch.load(feature_path).to(torch.float32)
         feature = self._normalize(feature)
 
-
-        # print(feature.dtype)
-        # print("=="*10)
-
-
         return feature, label
-
-    
 
 
 class Ffplusplusc23DatasetFactory:
     train_set = Ffplusplusc23Dataset(
         root_dir=data_dir,
         train=True,
-      
     )
 
     test_set = Ffplusplusc23Dataset(
         root_dir=data_dir,
         train=False,
-    
     )
 
     @classmethod
-    def create_train_loaders(cls, batch_size: int):
+    def create_train_loaders(cls, batch_size: int, num_workers: int):
         train_loader = DataLoader(
             dataset=cls.train_set,
             batch_size=batch_size,
+            num_workers=num_workers,
             shuffle=True,
         )
 
         test_loader = DataLoader(
            dataset=cls.test_set,
             batch_size=batch_size,
+            num_workers=num_workers,
             shuffle=False,
         )
 

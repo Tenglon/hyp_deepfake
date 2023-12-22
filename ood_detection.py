@@ -10,8 +10,6 @@ import torchvision.transforms as trn
 import ood_utils.svhn_loader as svhn
 import ood_utils.testfakedataset as testface
 
-from cifar10.dataloader import Cifar10DataLoaderFactory
-from cifar100.dataloader import Cifar100DataLoaderFactory
 from ffppc23.dataloader import Ffplusplusc23DatasetFactory
 
 from config import config
@@ -27,14 +25,12 @@ parser = argparse.ArgumentParser(
     description="Evaluates a CIFAR OOD Detector",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
 )
-parser.add_argument("--model", type=str, default="allconv", help="Choose architecture.")
+parser.add_argument("--model", type=str, default="euclidean-8-16-768-resnet-32", help="Choose architecture.")
 parser.add_argument("--dataset", type=str, default="cifar10", help="Choose dataset.")
 parser.add_argument("--batch_size", type=int, default=200)
-parser.add_argument(
-    "--num_to_avg", type=int, default=1, help="Average measures across num_to_avg runs."
-)
+parser.add_argument("--num_to_avg", type=int, default=1, help="Average measures across num_to_avg runs.")
 parser.add_argument("--ngpu", type=int, default=1, help="0 = CPU.")
-parser.add_argument("--prefetch", type=int, default=2, help="Pre-fetching threads.")
+parser.add_argument("--num_workers", type=int, default=2, help="Pre-fetching threads.")
 parser.add_argument("--T", default=1.0, type=float, help="temperature")
 args = parser.parse_args()
 print(args)
@@ -44,21 +40,10 @@ std = [0.5, 0.5, 0.5]
 
 test_transform = trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)])
 
-if args.dataset == "cifar10":
-    _, test_loader = Cifar10DataLoaderFactory.create_train_loaders(
-        batch_size=args.batch_size
-    )
-    classes = 10
-elif args.dataset == "cifar100":
-    _, test_loader = Cifar100DataLoaderFactory.create_train_loaders(
-        batch_size=args.batch_size
-    )
-    classes = 100
-elif args.dataset == "ffppc23":
-    _, test_loader = Ffplusplusc23DatasetFactory.create_train_loaders(
-        batch_size=args.batch_size
-    )
-    classes = 1000
+
+
+_, test_loader = Ffplusplusc23DatasetFactory.create_train_loaders(batch_size=args.batch_size, num_workers=args.num_workers)
+classes = 1000
 
 model = parse_model_from_name(model_name=args.model, classes=classes).cuda()
 weights_path = os.path.join(
