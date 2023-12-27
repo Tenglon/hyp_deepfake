@@ -113,3 +113,8 @@ for epoch in range(args.epochs):
         best_model_state = model.state_dict()
         
     print(f"Epoch {epoch}:  Time: {time.time() - epoch_start:.3f}  Loss: {metrics['losses'].avg:>7.4f}  Acc@1: {metrics['top1'].avg:>7.4f}")
+
+if args.save:
+    torch.save(best_model_state, os.path.join(exp_dir, "model.pt"))
+    with open(os.path.join(exp_dir, "args.json"), "w") as f:
+        json.dump(vars(args), f)
