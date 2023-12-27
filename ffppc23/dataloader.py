@@ -42,6 +42,7 @@ class Ffplusplusc23Dataset(Dataset):
 
 
 class Ffplusplusc23DatasetFactory:
+
     train_set = Ffplusplusc23Dataset(
         root_dir=data_dir,
         train=True,
