@@ -117,6 +117,6 @@ for epoch in range(args.epochs):
 
 if args.save:
     torch.save(best_model_state, os.path.join(exp_dir, "model.pt"))
-    torch.save(prototype_embs, os.path.join(exp_dir, "prototype_embs.pt")
+    torch.save(prototype_embs, os.path.join(exp_dir, "prototype_embs.pt"))
     with open(os.path.join(exp_dir, "args.json"), "w") as f:
         json.dump(vars(args), f)
