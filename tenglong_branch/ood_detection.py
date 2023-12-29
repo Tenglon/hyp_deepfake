@@ -21,6 +21,7 @@ parser.add_argument("--batch_size", type=int, default=200)
 parser.add_argument("--num_to_avg", type=int, default=1, help="Average measures across num_to_avg runs.")
 parser.add_argument("--geometry", type=str, default="hyp")
 parser.add_argument("--emb_dim", type=int, default=32)
+parser.add_argument("--c", type=float, default=1.0)
 parser.add_argument("--T", type=float, default=1.0, help="Temperature for softmax.")
 parser.add_argument("--num_workers", type=int, default=2, help="Pre-fetching threads.")
 
@@ -48,11 +49,11 @@ class MLP(torch.nn.Module):
         x = x / (torch.norm(x, dim=-1, keepdim=True) + 1e-3)
         return x
 
-def get_and_print_results(ood_loader, model, num_to_avg=args.num_to_avg):
+def get_and_print_results(ood_loader, model, prototype_embs, num_to_avg=args.num_to_avg):
     aurocs, auprs, fprs = [], [], []
 
     for _ in range(num_to_avg):
-        out_score = get_ood_scores(ood_loader, model)
+        out_score = get_ood_scores(ood_loader, model, prototype_embs)
         measures = get_measures(-in_score, -out_score)
         aurocs.append(measures[0])
         auprs.append(measures[1])
@@ -71,7 +72,7 @@ def get_and_print_results(ood_loader, model, num_to_avg=args.num_to_avg):
     return auroc, aupr, fpr
 
 
-def get_ood_scores(loader, model, in_dist=False):
+def get_ood_scores(loader, model, prototype_embs, in_dist=False):
     _score = []
     _right_score = []
     _wrong_score = []
@@ -119,6 +120,9 @@ runs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), args.geometr
 last_run = sorted(os.listdir(runs_dir))[-1]
 
 weights_path = os.path.join(runs_dir, last_run, "model.pt")
+emb_path = os.path.join(runs_dir, last_run, "prototype_embs.pt")
+
+prototype_embs = torch.load(emb_path)
 
 state_dict = torch.load(weights_path)
 model.load_state_dict(state_dict)
@@ -133,7 +137,7 @@ to_np = lambda x: x.data.cpu().numpy()
 
 auroc_list, aupr_list, fpr_list = [], [], []
 
-in_score, right_score, wrong_score = get_ood_scores(test_loader, model, in_dist=True)
+in_score, right_score, wrong_score = get_ood_scores(test_loader, model, prototype_embs, in_dist=True)
 
 num_right = len(right_score)
 num_wrong = len(wrong_score)
@@ -153,7 +157,7 @@ for key, value in fake_dirs.items():
         ood_data, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True
     )
     print("{} Detection".format(key))
-    auroc, aupr, fpr = get_and_print_results(ood_loader, model)
+    auroc, aupr, fpr = get_and_print_results(ood_loader, model, prototype_embs)
     auroc_list.append(auroc), aupr_list.append(aupr), fpr_list.append(fpr)
 
 
