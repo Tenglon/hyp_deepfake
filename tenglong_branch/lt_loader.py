@@ -2,6 +2,33 @@ import os
 import torch
 from torch.utils.data import Dataset, DataLoader
 
+class Fakedataset(Dataset):
+    def __init__(self, root_dir):
+        """
+        Args:
+            root_dir (string): 数据集的目录路径。
+            transform (callable, optional): 应用于样本的可选变换。
+        """
+        self.root_dir = root_dir
+        
+        # 加载所有样本的路径和标签
+        self.samples = []
+        for label, category in enumerate(sorted(os.listdir(self.root_dir ))):
+            category_dir = os.path.join(self.root_dir, category)
+            for file in os.listdir(category_dir):
+                if file.endswith('.pt'):
+                    self.samples.append((os.path.join(category_dir, file), label))
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        feature_path, label = self.samples[idx]
+        feature = torch.load(feature_path).to(torch.float32).squeeze()
+        
+        return feature, label
+
+
 class Ffplusplusc23Dataset(Dataset):
     def __init__(self, root_dir,train=True):
         """

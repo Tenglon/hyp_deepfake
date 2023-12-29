@@ -27,7 +27,8 @@ parser.add_argument("--weight-decay", type=float, default=1e-4)
 parser.add_argument("--save", action="store_const", const=True)
 parser.add_argument("--num-workers", type=int, default=0)
 
-parser.add_argument("--emb_dim", type=int, default=24)
+parser.add_argument("--geometry", type=str, default="hyp")
+parser.add_argument("--emb_dim", type=int, default=32)
 parser.add_argument("--T", type=float, default=1.0)
 parser.add_argument("--c", type=float, default=1.0)
 
@@ -52,14 +53,14 @@ class MLP(torch.nn.Module):
 # Create some strings for file management
 now = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 dir_path = os.path.dirname(os.path.realpath(__file__))
-exp_dir = os.path.join(dir_path, "runs", args.dataset, now)
+exp_dir = os.path.join(dir_path, args.geometry, args.dataset, now)
 os.makedirs(exp_dir)
 
 classes = 1000
-poincare_embs = torch.randn(classes, args.emb_dim).cuda()
-poincare_embs = poincare_embs / (torch.norm(poincare_embs, dim=-1, keepdim=True) + 1e-3)
+prototype_embs = torch.randn(classes, args.emb_dim).cuda()
+prototype_embs = prototype_embs / (torch.norm(prototype_embs, dim=-1, keepdim=True) + 1e-3)
 
-dist_func = pair_wise_hyp
+dist_func = pair_wise_hyp if args.geometry == "hyp" else pair_wise_eud
 
 # Create dataloaders
 train_loader, test_loader = create_loaders(data_dir=args.data_dir ,batch_size=args.batch_size, num_workers=args.num_workers)
@@ -84,7 +85,7 @@ for epoch in range(args.epochs):
         input, target = input.cuda(), target.cuda()
         output = model(input) 
 
-        logits = -dist_func(output, poincare_embs ,c = args.c) / args.T
+        logits = -dist_func(output, prototype_embs ,c = args.c) / args.T
         loss = F.cross_entropy(logits, target)
 
         optimizer.zero_grad()
@@ -100,7 +101,7 @@ for epoch in range(args.epochs):
             input, target = input.cuda(), target.cuda()
             output = model(input)
 
-            logits = -dist_func(output, poincare_embs ,c = args.c) / args.T
+            logits = -dist_func(output, prototype_embs ,c = args.c) / args.T
             loss = F.cross_entropy(logits, target)
 
             acc1, acc5 = utils.accuracy(logits, target, topk=(1, 5))
@@ -116,5 +117,6 @@ for epoch in range(args.epochs):
 
 if args.save:
     torch.save(best_model_state, os.path.join(exp_dir, "model.pt"))
+    torch.save(prototype_embs, os.path.join(exp_dir, "prototype_embs.pt")
     with open(os.path.join(exp_dir, "args.json"), "w") as f:
         json.dump(vars(args), f)
