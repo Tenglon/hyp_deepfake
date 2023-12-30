@@ -143,9 +143,6 @@ num_right = len(right_score)
 num_wrong = len(wrong_score)
 print("Error Rate {:.2f}".format(100 * num_wrong / (num_wrong + num_right)))
 
-import pdb
-pdb.set_trace()
-
 show_performance(wrong_score, right_score)
 
 

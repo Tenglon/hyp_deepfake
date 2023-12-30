@@ -34,6 +34,15 @@ parser.add_argument("--c", type=float, default=1.0)
 
 args = parser.parse_args()
 
+class LinearClassifier(torch.nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(LinearClassifier, self).__init__()
+        self.fc = torch.nn.Linear(input_size, output_size)
+
+    def forward(self, x):
+        x = self.fc(x)
+        return x
+
 class MLP(torch.nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(MLP, self).__init__()
