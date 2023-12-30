@@ -1,0 +1,1 @@
+{"dataset": "ffppc23", "batch_size": 128, "epochs": 100, "criterion": "losses", "data_dir": "/ssd2/data/ffppc23/real/split_20231215/", "opt": "adam", "lr": 0.001, "momentum": 0.9, "weight_decay": 0.0001, "save": true, "num_workers": 0, "geometry": "hyp", "emb_dim": 16, "T": 1.0, "c": 1.0}
