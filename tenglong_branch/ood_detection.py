@@ -118,7 +118,7 @@ model = MLP(768, 1024, args.emb_dim).cuda()
 
 runs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), args.geometry, args.dataset)
 last_run = sorted(os.listdir(runs_dir))[-1]
-last_run = '2023-12-30_07-02-02' # TODO: remove this line
+# last_run = '2023-12-30_07-02-02' # TODO: remove this line
 
 weights_path = os.path.join(runs_dir, last_run, "model.pt")
 emb_path = os.path.join(runs_dir, last_run, "prototype_embs.pt")

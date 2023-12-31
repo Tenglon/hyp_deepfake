@@ -52,9 +52,9 @@ class MLP(torch.nn.Module):
 
     def forward(self, x):
         x = self.fc0(x)
-        x = torch.nn.ReLU()(x)
+        x = torch.nn.LeakyReLU()(x)
         x = self.fc1(x)
-        x = torch.nn.ReLU()(x)
+        x = torch.nn.LeakyReLU()(x)
         x = self.fc2(x)
         x = x / (torch.norm(x, dim=-1, keepdim=True) + 1e-3)
         return x
