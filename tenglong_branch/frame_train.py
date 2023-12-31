@@ -5,7 +5,7 @@ import torchvision
 import argparse
 from timm import utils
 
-from torchvision.models import resnet18, ResNet18_Weights
+from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights
 from frame_loader import RealVideoFrameDataset
 
 parser = argparse.ArgumentParser()
@@ -39,11 +39,12 @@ testset = RealVideoFrameDataset(os.path.join(root, 'test'), transform=transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers, pin_memory=True)
 testloader = torch.utils.data.DataLoader(testset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=True)
 
-model0 = resnet18(weights=ResNet18_Weights.DEFAULT)
+# model0 = resnet18(weights=ResNet18_Weights.DEFAULT)
+model0 = resnet50(weights=ResNet50_Weights.DEFAULT)
 backbone = torch.nn.Sequential(*list(model0.children())[:-1])
 head = torch.nn.Sequential(
     torch.nn.Flatten(),
-    torch.nn.Linear(512, args.emb_dim),
+    torch.nn.Linear(2048, args.emb_dim),
     torch.nn.LeakyReLU(),
     torch.nn.Linear(args.emb_dim, 1000),
     torch.nn.Softmax(dim=-1)
@@ -63,7 +64,7 @@ for epoch in range(args.epochs):
 
     metrics = {"losses": utils.AverageMeter(), "top1": utils.AverageMeter()}
 
-    for i, (x, y) in enumerate(trainloader):
+    for i, (x, y) in enumerate(testloader):
         x = x.cuda()
         y = y.cuda()
 

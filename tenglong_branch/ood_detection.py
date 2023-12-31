@@ -118,6 +118,7 @@ model = MLP(768, 1024, args.emb_dim).cuda()
 
 runs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), args.geometry, args.dataset)
 last_run = sorted(os.listdir(runs_dir))[-1]
+last_run = '2023-12-30_07-02-02' # TODO: remove this line
 
 weights_path = os.path.join(runs_dir, last_run, "model.pt")
 emb_path = os.path.join(runs_dir, last_run, "prototype_embs.pt")
@@ -155,6 +156,11 @@ for key, value in fake_dirs.items():
     )
     print("{} Detection".format(key))
     auroc, aupr, fpr = get_and_print_results(ood_loader, model, prototype_embs)
+
+    out_score = get_ood_scores(ood_loader, model, prototype_embs)
+    score_dict = {'in_score': -in_score, 'out_score': -out_score}
+    torch.save(score_dict, os.path.join(runs_dir, last_run, '{}_score.pt'.format(key)))
+
     auroc_list.append(auroc), aupr_list.append(aupr), fpr_list.append(fpr)
 
 
