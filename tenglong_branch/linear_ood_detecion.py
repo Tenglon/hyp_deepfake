@@ -140,6 +140,11 @@ for key, value in fake_dirs.items():
     )
     print("{} Detection".format(key))
     auroc, aupr, fpr = get_and_print_results(ood_loader, model)
+
+    out_score = get_ood_scores(ood_loader, model)
+    score_dict = {'in_score': -in_score, 'out_score': -out_score}
+    torch.save(score_dict, os.path.join(runs_dir, last_run, '{}_score.pt'.format(key)))
+
     auroc_list.append(auroc), aupr_list.append(aupr), fpr_list.append(fpr)
 
 
